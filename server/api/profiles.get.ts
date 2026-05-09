@@ -49,9 +49,11 @@ export default defineEventHandler(() => {
     }
   }
 
-  const rows = db
-    .prepare('SELECT * FROM profiles WHERE present = 1 ORDER BY is_default DESC, slug ASC')
-    .all() as unknown as ProfileRow[]
+  const defaultDisabled = process.env.WAR_ROOM_DEFAULT_DISABLED === 'true'
+  const query = defaultDisabled
+    ? 'SELECT * FROM profiles WHERE present = 1 AND is_default = 0 ORDER BY slug ASC'
+    : 'SELECT * FROM profiles WHERE present = 1 ORDER BY is_default DESC, slug ASC'
+  const rows = db.prepare(query).all() as unknown as ProfileRow[]
 
   // Once per server-process lifetime, ensure the team-roster skill and roster
   // file exist on disk so a freshly-installed war-room is usable immediately
