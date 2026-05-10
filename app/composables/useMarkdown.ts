@@ -22,9 +22,20 @@ marked.setOptions({
  * SSR fallback: DOMPurify needs a DOM. When called during SSR we just escape
  * the content; the client will re-render with full markdown on hydration.
  */
+/**
+ * Collapse blank lines between list items so `marked` doesn't wrap each item
+ * in a `<p>` tag (which happens when list items are separated by blank lines).
+ * This prevents excessive vertical spacing / paragraph indentation in the UI.
+ */
+function collapseListGaps(input: string): string {
+  // Remove blank lines that appear between a list item and the next list item
+  // (line starting with `-`, `*`, `+`, or a digit+`.`).
+  return input.replace(/^([ \t]*(?:[-*+]|\d+\.) .+)\n\n(?=[ \t]*(?:[-*+]|\d+\.) )/gm, '$1\n')
+}
+
 export function renderMarkdown(input: string): string {
   if (!input) return ''
-  const html = marked.parse(input, { async: false }) as string
+  const html = marked.parse(collapseListGaps(input), { async: false }) as string
   if (typeof window === 'undefined') {
     return escapeHtml(input)
   }
