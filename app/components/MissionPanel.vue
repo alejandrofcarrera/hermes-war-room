@@ -581,10 +581,12 @@ watch(transcriptRef, (el) => {
 .mission-md :deep(p) { margin: 0 0 8px; }
 .mission-md :deep(p:last-child) { margin-bottom: 0; }
 .mission-md :deep(ul),
-.mission-md :deep(ol) { margin: 0 0 8px; padding-left: 18px; }
-.mission-md :deep(li) { margin: 2px 0; }
+.mission-md :deep(ol) { margin: 4px 0 8px; padding-left: 18px; }
+.mission-md :deep(li) { margin: 0; line-height: 1.5; }
+.mission-md :deep(li + li) { margin-top: 3px; }
 .mission-md :deep(li > ul),
 .mission-md :deep(li > ol) { margin: 2px 0 2px; padding-left: 16px; }
+.mission-md :deep(li br) { display: none; }
 .mission-md :deep(strong) { font-weight: 600; }
 .mission-md :deep(em) { font-style: italic; }
 .mission-md :deep(a) {

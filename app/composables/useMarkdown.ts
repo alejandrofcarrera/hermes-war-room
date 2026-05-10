@@ -9,10 +9,13 @@ renderer.link = (...args) => {
 }
 
 // Strip the <p> wrapper that marked adds when list items are separated by
-// blank lines ("loose lists"). This prevents the huge inter-item spacing.
+// blank lines ("loose lists"), and trim trailing <br> tags injected by
+// breaks:true. This prevents the huge inter-item spacing.
 renderer.listitem = (item) => {
   const body = typeof item === 'string' ? item : (item as { text?: string }).text ?? ''
-  const stripped = body.replace(/^<p>([\s\S]*?)<\/p>\n?/, '$1')
+  const stripped = body
+    .replace(/^<p>([\s\S]*?)<\/p>\n?/, '$1')
+    .replace(/(<br\s*\/?>\s*)+$/, '')
   return `<li>${stripped}</li>\n`
 }
 
