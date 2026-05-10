@@ -217,14 +217,17 @@ export function useMissionStream(): UseMissionStream {
             messages.value = [...messages.value]
           } else {
             // The message hadn't been loaded yet — synthesize it.
-            pendingAssistant = {
-              id: evt.messageId,
-              role: 'assistant',
-              content: evt.content,
-              createdAt: new Date().toISOString(),
-              pending: true
+            // Only add if not already present to avoid duplication
+            if (!messages.value.some(m => m.id === evt.messageId)) {
+              pendingAssistant = {
+                id: evt.messageId,
+                role: 'assistant',
+                content: evt.content,
+                createdAt: new Date().toISOString(),
+                pending: true
+              }
+              messages.value = [...messages.value, pendingAssistant]
             }
-            messages.value = [...messages.value, pendingAssistant]
           }
         }
       } else if (evt.type === 'done') {
