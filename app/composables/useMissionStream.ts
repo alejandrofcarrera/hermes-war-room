@@ -207,6 +207,10 @@ export function useMissionStream(): UseMissionStream {
         // mid-turn flip into "streaming" without waiting for the next chunk.
         streaming.value = !!evt.streaming
         if (evt.streaming && evt.messageId !== null) {
+          // Clear any stale pendingAssistant to prevent carrying over content
+          if (pendingAssistant && pendingAssistant.id !== evt.messageId) {
+            pendingAssistant = null
+          }
           // Hook pendingAssistant onto the existing message so subsequent
           // chunks accumulate into it instead of creating a duplicate.
           const existing = messages.value.find(m => m.id === evt.messageId)
@@ -217,17 +221,14 @@ export function useMissionStream(): UseMissionStream {
             messages.value = [...messages.value]
           } else {
             // The message hadn't been loaded yet — synthesize it.
-            // Only add if not already present to avoid duplication
-            if (!messages.value.some(m => m.id === evt.messageId)) {
-              pendingAssistant = {
-                id: evt.messageId,
-                role: 'assistant',
-                content: evt.content,
-                createdAt: new Date().toISOString(),
-                pending: true
-              }
-              messages.value = [...messages.value, pendingAssistant]
+            pendingAssistant = {
+              id: evt.messageId,
+              role: 'assistant',
+              content: evt.content,
+              createdAt: new Date().toISOString(),
+              pending: true
             }
+            messages.value = [...messages.value, pendingAssistant]
           }
         }
       } else if (evt.type === 'done') {

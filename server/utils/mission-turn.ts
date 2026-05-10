@@ -232,6 +232,15 @@ async function runMissionTurnLocked(missionId: string, userText: string): Promis
   let terminalToolUsed = false
   const turnStartUnix = Math.floor(Date.now() / 1000)
 
+  // ACP replays the full accumulated session text (all prior assistant turns)
+  // as the leading chunks of each new prompt. We compute how many characters
+  // to skip so the client only sees new content for this turn.
+  const priorAssistantContent = priorMessages
+    .filter(m => m.role === 'assistant')
+    .map(m => m.content)
+    .join('')
+  let skipChars = priorAssistantContent.length
+
   // Cache of `rawInput` keyed by toolCallId. ACP only includes rawInput in
   // the initial `tool_call` notification; subsequent `tool_call_update`
   // events only carry the delta (status + output). We need the original
@@ -255,6 +264,19 @@ async function runMissionTurnLocked(missionId: string, userText: string): Promis
     const text = extractText(notification.update)
     if (text !== null) {
       const thought = isThought(notification.update)
+      if (!thought && skipChars > 0) {
+        // Drain replayed prior-turn content before forwarding to clients.
+        if (text.length <= skipChars) {
+          skipChars -= text.length
+          return
+        }
+        const delta = text.slice(skipChars)
+        skipChars = 0
+        buffer += delta
+        flight.buffer = buffer
+        emit(missionId, { type: 'chunk', delta, thought })
+        return
+      }
       if (!thought) {
         buffer += text
         flight.buffer = buffer
