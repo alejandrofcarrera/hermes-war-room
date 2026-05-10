@@ -8,6 +8,14 @@ renderer.link = (...args) => {
   return html.replace(/^<a /, '<a target="_blank" rel="noopener noreferrer" ')
 }
 
+// Strip the <p> wrapper that marked adds when list items are separated by
+// blank lines ("loose lists"). This prevents the huge inter-item spacing.
+renderer.listitem = (item) => {
+  const body = typeof item === 'string' ? item : (item as { text?: string }).text ?? ''
+  const stripped = body.replace(/^<p>([\s\S]*?)<\/p>\n?/, '$1')
+  return `<li>${stripped}</li>\n`
+}
+
 marked.setOptions({
   gfm: true,
   breaks: true,
